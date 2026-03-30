@@ -35,6 +35,10 @@ app.innerHTML = `
           Seconds
           <input type="number" name="seconds" min="0" max="59" value="0" inputmode="numeric" />
         </label>
+        <label class="toggle">
+          <input type="checkbox" name="timerFullscreen" />
+          <span>開始時にタイマーを全画面表示する</span>
+        </label>
         <div class="actions">
           <button type="submit" class="primary">Start</button>
           <button type="button" data-pause>Pause</button>
@@ -53,6 +57,7 @@ app.innerHTML = `
 const clockElement = document.querySelector<HTMLElement>('[data-clock]')
 const dateElement = document.querySelector<HTMLElement>('[data-date]')
 const clockPanelElement = document.querySelector<HTMLElement>('[data-clock-panel]')
+const timerPanelElement = document.querySelector<HTMLElement>('.timer-panel')
 const fullscreenToggleButton = document.querySelector<HTMLButtonElement>('[data-fullscreen-toggle]')
 const statusElement = document.querySelector<HTMLElement>('[data-status]')
 const remainingElement = document.querySelector<HTMLElement>('[data-remaining]')
@@ -65,6 +70,7 @@ if (
   !clockElement ||
   !dateElement ||
   !clockPanelElement ||
+  !timerPanelElement ||
   !fullscreenToggleButton ||
   !statusElement ||
   !remainingElement ||
@@ -83,6 +89,7 @@ let totalDurationMs = 5 * 60 * 1000
 let remainingMs = totalDurationMs
 let intervalId: number | null = null
 let targetTimestamp = 0
+let audioContext: AudioContext | null = null
 
 const numberFormatter = new Intl.NumberFormat('ja-JP', {
   minimumIntegerDigits: 2,
@@ -131,6 +138,73 @@ const renderTimer = () => {
   remainingElement.textContent = formatDuration(remainingMs)
 }
 
+const enterFullscreen = async (element: HTMLElement, unavailableMessage: string) => {
+  if (!document.fullscreenEnabled) {
+    noteElement.textContent = unavailableMessage
+    return
+  }
+
+  if (document.fullscreenElement === element) {
+    return
+  }
+
+  await element.requestFullscreen()
+}
+
+const ensureAudioContext = async () => {
+  if (!('AudioContext' in window)) {
+    return null
+  }
+
+  if (!audioContext) {
+    audioContext = new window.AudioContext()
+  }
+
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume()
+  }
+
+  return audioContext
+}
+
+const playAlarm = async () => {
+  const context = await ensureAudioContext()
+
+  if (!context) {
+    noteElement.textContent = 'Time is up. Audio playback is not available in this browser.'
+    return
+  }
+
+  const startAt = context.currentTime
+  const pattern = [
+    { frequency: 880, duration: 0.18 },
+    { frequency: 660, duration: 0.18 },
+    { frequency: 880, duration: 0.28 },
+  ]
+
+  let cursor = startAt
+
+  for (const tone of pattern) {
+    const oscillator = context.createOscillator()
+    const gainNode = context.createGain()
+
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(tone.frequency, cursor)
+
+    gainNode.gain.setValueAtTime(0.0001, cursor)
+    gainNode.gain.exponentialRampToValueAtTime(0.16, cursor + 0.02)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, cursor + tone.duration)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(context.destination)
+
+    oscillator.start(cursor)
+    oscillator.stop(cursor + tone.duration)
+
+    cursor += tone.duration + 0.05
+  }
+}
+
 const syncFullscreenButton = () => {
   const isFullscreen = document.fullscreenElement === clockPanelElement
   fullscreenToggleButton.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'
@@ -149,6 +223,10 @@ const finishTimer = () => {
   renderTimer()
   updateStatus('finished')
   noteElement.textContent = 'Time is up.'
+  if (document.fullscreenElement === timerPanelElement) {
+    void document.exitFullscreen()
+  }
+  void playAlarm()
 }
 
 const tickTimer = () => {
@@ -183,12 +261,13 @@ const resetTimer = () => {
   noteElement.textContent = 'Ready to start.'
 }
 
-formElement.addEventListener('submit', (event) => {
+formElement.addEventListener('submit', async (event) => {
   event.preventDefault()
 
   const formData = new FormData(formElement)
   const minutes = Number(formData.get('minutes') ?? 0)
   const seconds = Number(formData.get('seconds') ?? 0)
+  const timerFullscreen = formData.get('timerFullscreen') === 'on'
   const nextDurationMs = (minutes * 60 + seconds) * 1000
 
   if (!Number.isFinite(nextDurationMs) || nextDurationMs <= 0) {
@@ -199,6 +278,10 @@ formElement.addEventListener('submit', (event) => {
   totalDurationMs = nextDurationMs
   remainingMs = nextDurationMs
   renderTimer()
+  void ensureAudioContext()
+  if (timerFullscreen) {
+    await enterFullscreen(timerPanelElement, 'Fullscreen mode is not available in this browser.')
+  }
   startTimer()
 })
 
@@ -211,6 +294,7 @@ pauseButton.addEventListener('click', () => {
   }
 
   if (timerState === 'paused') {
+    void ensureAudioContext()
     startTimer()
   }
 })
@@ -218,17 +302,12 @@ pauseButton.addEventListener('click', () => {
 resetButton.addEventListener('click', resetTimer)
 
 fullscreenToggleButton.addEventListener('click', async () => {
-  if (!document.fullscreenEnabled) {
-    noteElement.textContent = 'Fullscreen mode is not available in this browser.'
-    return
-  }
-
   if (document.fullscreenElement === clockPanelElement) {
     await document.exitFullscreen()
     return
   }
 
-  await clockPanelElement.requestFullscreen()
+  await enterFullscreen(clockPanelElement, 'Fullscreen mode is not available in this browser.')
 })
 
 document.addEventListener('fullscreenchange', syncFullscreenButton)
