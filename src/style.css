@@ -1,0 +1,251 @@
+:root {
+  font-family: "Avenir Next", "Hiragino Sans", sans-serif;
+  color: #f3f7ff;
+  background:
+    radial-gradient(circle at top, rgba(111, 173, 255, 0.28), transparent 38%),
+    linear-gradient(160deg, #09111f 0%, #13233c 48%, #09111f 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 28px;
+  padding: 2rem;
+  backdrop-filter: blur(20px);
+  background: rgba(7, 14, 28, 0.62);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -70px auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(91, 157, 255, 0.14);
+  filter: blur(12px);
+}
+
+.clock-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.clock-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.fullscreen-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  color: #eff5ff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #87a7d5;
+}
+
+.clock {
+  margin: 0;
+  font-size: clamp(3rem, 10vw, 6.75rem);
+  line-height: 0.95;
+  letter-spacing: 0.08em;
+}
+
+.date {
+  margin: 1rem 0 0;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #c0d4f5;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.status {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dce7fb;
+}
+
+.status.running {
+  background: rgba(0, 211, 153, 0.18);
+  color: #6ff0c4;
+}
+
+.status.paused {
+  background: rgba(255, 181, 71, 0.18);
+  color: #ffd37c;
+}
+
+.status.finished {
+  background: rgba(255, 98, 98, 0.18);
+  color: #ff9999;
+}
+
+.timer-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.timer-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: #c2d3ef;
+}
+
+.timer-form input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  color: #f3f7ff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+  color: #eff5ff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.actions .primary {
+  background: linear-gradient(135deg, #63a8ff, #86c8ff);
+  color: #04111f;
+  font-weight: 700;
+}
+
+.timer-readout {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.timer-time {
+  display: block;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.timer-note {
+  margin: 0.9rem 0 0;
+  color: #aac2e9;
+}
+
+.clock-panel:fullscreen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at top, rgba(111, 173, 255, 0.28), transparent 38%),
+    linear-gradient(160deg, #09111f 0%, #13233c 48%, #09111f 100%);
+}
+
+.clock-panel:fullscreen::after {
+  inset: auto -120px -120px auto;
+  width: 320px;
+  height: 320px;
+}
+
+.clock-panel:fullscreen .clock-panel-header {
+  width: min(100%, 1100px);
+}
+
+.clock-panel:fullscreen .clock {
+  font-size: clamp(5rem, 18vw, 12rem);
+}
+
+.clock-panel:fullscreen .date {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+@media (max-width: 820px) {
+  .shell {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .timer-form {
+    grid-template-columns: 1fr;
+  }
+
+  .clock-panel-header {
+    align-items: start;
+    flex-direction: column;
+  }
+}
