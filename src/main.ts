@@ -47,7 +47,7 @@ app.innerHTML = `
         </label>
         <label class="toggle">
           <input type="checkbox" name="timerFullscreen" />
-          <span>FullScreen while Countdown</span>
+          <span>Enable fullscreen during countdown</span>
         </label>
         <div class="actions">
           <button type="submit" class="primary">Start</button>
@@ -58,8 +58,19 @@ app.innerHTML = `
 
       <div class="timer-readout">
         <span class="timer-time" data-remaining>05:00</span>
+        <p class="timer-fullscreen-session-name" data-timer-fullscreen-session-name></p>
         <p class="timer-note" data-note>Ready to start.</p>
       </div>
+      <label class="session-name-input">
+        <span>Session Name</span>
+        <input
+          type="text"
+          name="sessionName"
+          maxlength="80"
+          placeholder="Enter a session name"
+          data-session-name-input
+        />
+      </label>
     </section>
   </main>
 `
@@ -71,8 +82,12 @@ const clockMessageInputElement = document.querySelector<HTMLInputElement>('[data
 const clockFullscreenMessageElement = document.querySelector<HTMLElement>('[data-clock-fullscreen-message]')
 const timerPanelElement = document.querySelector<HTMLElement>('.timer-panel')
 const fullscreenToggleButton = document.querySelector<HTMLButtonElement>('[data-fullscreen-toggle]')
+const sessionNameInputElement = document.querySelector<HTMLInputElement>('[data-session-name-input]')
 const statusElement = document.querySelector<HTMLElement>('[data-status]')
 const remainingElement = document.querySelector<HTMLElement>('[data-remaining]')
+const timerFullscreenSessionNameElement = document.querySelector<HTMLElement>(
+  '[data-timer-fullscreen-session-name]',
+)
 const noteElement = document.querySelector<HTMLElement>('[data-note]')
 const formElement = document.querySelector<HTMLFormElement>('[data-form]')
 const pauseButton = document.querySelector<HTMLButtonElement>('[data-pause]')
@@ -86,8 +101,10 @@ if (
   !clockFullscreenMessageElement ||
   !timerPanelElement ||
   !fullscreenToggleButton ||
+  !sessionNameInputElement ||
   !statusElement ||
   !remainingElement ||
+  !timerFullscreenSessionNameElement ||
   !noteElement ||
   !formElement ||
   !pauseButton ||
@@ -157,6 +174,12 @@ const updateStatus = (state: TimerState) => {
 
 const renderTimer = () => {
   remainingElement.textContent = formatDuration(remainingMs)
+}
+
+const updateTimerFullscreenSessionName = () => {
+  const sessionName = sessionNameInputElement.value.trim()
+  timerFullscreenSessionNameElement.textContent = sessionName
+  timerFullscreenSessionNameElement.classList.toggle('has-session-name', sessionName.length > 0)
 }
 
 const clearWarningHoldTimeout = () => {
@@ -373,6 +396,7 @@ fullscreenToggleButton.addEventListener('click', async () => {
 
 document.addEventListener('fullscreenchange', syncFullscreenButton)
 clockMessageInputElement.addEventListener('input', updateClockFullscreenMessage)
+sessionNameInputElement.addEventListener('input', updateTimerFullscreenSessionName)
 
 updateClock()
 window.setInterval(updateClock, 1000)
@@ -380,4 +404,5 @@ renderTimer()
 updateStatus('idle')
 updateTimerVisualState()
 updateClockFullscreenMessage()
+updateTimerFullscreenSessionName()
 syncFullscreenButton()

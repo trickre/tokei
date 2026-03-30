@@ -267,6 +267,34 @@ button {
   color: #aac2e9;
 }
 
+.timer-fullscreen-session-name {
+  display: none;
+  margin: 1.5rem 0 0;
+  color: #d6e6ff;
+  font-size: clamp(1.25rem, 3vw, 2.2rem);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.session-name-input {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c2d3ef;
+}
+
+.session-name-input input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  color: #f3f7ff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .timer-panel:fullscreen {
   display: flex;
   align-items: center;
@@ -280,6 +308,7 @@ button {
 
 .timer-panel:fullscreen .panel-header,
 .timer-panel:fullscreen .timer-form,
+.timer-panel:fullscreen .session-name-input,
 .timer-panel:fullscreen .timer-note {
   display: none;
 }
@@ -288,11 +317,16 @@ button {
   margin: 0;
   padding: 0;
   border: 0;
+  text-align: center;
 }
 
 .timer-panel:fullscreen .timer-time {
   font-size: clamp(6rem, 24vw, 16rem);
   text-align: center;
+}
+
+.timer-panel:fullscreen .timer-fullscreen-session-name.has-session-name {
+  display: block;
 }
 
 .clock-panel:fullscreen {
