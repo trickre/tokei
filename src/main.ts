@@ -37,7 +37,7 @@ app.innerHTML = `
         </label>
         <label class="toggle">
           <input type="checkbox" name="timerFullscreen" />
-          <span>開始時にタイマーを全画面表示する</span>
+          <span>FullScreen while Countdown</span>
         </label>
         <div class="actions">
           <button type="submit" class="primary">Start</button>

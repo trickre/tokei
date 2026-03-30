@@ -217,6 +217,34 @@ button {
   color: #aac2e9;
 }
 
+.timer-panel:fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  padding: 3rem;
+  background:
+    radial-gradient(circle at top, rgba(111, 173, 255, 0.22), transparent 40%),
+    linear-gradient(160deg, #09111f 0%, #13233c 48%, #09111f 100%);
+}
+
+.timer-panel:fullscreen .panel-header,
+.timer-panel:fullscreen .timer-form,
+.timer-panel:fullscreen .timer-note {
+  display: none;
+}
+
+.timer-panel:fullscreen .timer-readout {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.timer-panel:fullscreen .timer-time {
+  font-size: clamp(6rem, 24vw, 16rem);
+  text-align: center;
+}
+
 .clock-panel:fullscreen {
   justify-content: center;
   align-items: center;
