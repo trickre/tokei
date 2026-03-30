@@ -210,6 +210,30 @@ button {
   font-size: clamp(2.5rem, 8vw, 5rem);
   line-height: 1;
   letter-spacing: 0.08em;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.timer-time.is-warning {
+  color: #ffd54a;
+  text-shadow: 0 0 20px rgba(255, 213, 74, 0.45);
+  animation: timer-blink 0.8s steps(2, end) infinite;
+}
+
+.timer-time.is-finished-hold {
+  color: #ffd54a;
+  text-shadow: 0 0 24px rgba(255, 213, 74, 0.5);
+}
+
+@keyframes timer-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0.35;
+  }
 }
 
 .timer-note {

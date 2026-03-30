@@ -90,6 +90,7 @@ let remainingMs = totalDurationMs
 let intervalId: number | null = null
 let targetTimestamp = 0
 let audioContext: AudioContext | null = null
+let warningHoldTimeoutId: number | null = null
 
 const numberFormatter = new Intl.NumberFormat('ja-JP', {
   minimumIntegerDigits: 2,
@@ -136,6 +137,30 @@ const updateStatus = (state: TimerState) => {
 
 const renderTimer = () => {
   remainingElement.textContent = formatDuration(remainingMs)
+}
+
+const clearWarningHoldTimeout = () => {
+  if (warningHoldTimeoutId !== null) {
+    window.clearTimeout(warningHoldTimeoutId)
+    warningHoldTimeoutId = null
+  }
+}
+
+const resetTimerVisualState = () => {
+  remainingElement.classList.remove('is-warning', 'is-finished-hold')
+}
+
+const updateTimerVisualState = () => {
+  resetTimerVisualState()
+
+  if (timerState === 'finished') {
+    remainingElement.classList.add('is-finished-hold')
+    return
+  }
+
+  if (timerState === 'running' && remainingMs > 0 && remainingMs <= 5000) {
+    remainingElement.classList.add('is-warning')
+  }
 }
 
 const enterFullscreen = async (element: HTMLElement, unavailableMessage: string) => {
@@ -219,13 +244,21 @@ const stopInterval = () => {
 
 const finishTimer = () => {
   stopInterval()
+  clearWarningHoldTimeout()
   remainingMs = 0
   renderTimer()
   updateStatus('finished')
+  updateTimerVisualState()
   noteElement.textContent = 'Time is up.'
   if (document.fullscreenElement === timerPanelElement) {
     void document.exitFullscreen()
   }
+  warningHoldTimeoutId = window.setTimeout(() => {
+    if (timerState === 'finished') {
+      remainingElement.classList.remove('is-finished-hold')
+    }
+    warningHoldTimeoutId = null
+  }, 2000)
   void playAlarm()
 }
 
@@ -238,26 +271,33 @@ const tickTimer = () => {
   }
 
   renderTimer()
+  updateTimerVisualState()
 }
 
 const startTimer = () => {
+  clearWarningHoldTimeout()
+  resetTimerVisualState()
+
   if (remainingMs <= 0) {
     remainingMs = totalDurationMs
   }
 
   targetTimestamp = Date.now() + remainingMs
   stopInterval()
-  tickTimer()
-  intervalId = window.setInterval(tickTimer, 250)
   updateStatus('running')
+  renderTimer()
+  updateTimerVisualState()
+  intervalId = window.setInterval(tickTimer, 250)
   noteElement.textContent = 'Countdown in progress.'
 }
 
 const resetTimer = () => {
   stopInterval()
+  clearWarningHoldTimeout()
   remainingMs = totalDurationMs
   renderTimer()
   updateStatus('idle')
+  updateTimerVisualState()
   noteElement.textContent = 'Ready to start.'
 }
 
@@ -278,6 +318,7 @@ formElement.addEventListener('submit', async (event) => {
   totalDurationMs = nextDurationMs
   remainingMs = nextDurationMs
   renderTimer()
+  updateTimerVisualState()
   void ensureAudioContext()
   if (timerFullscreen) {
     await enterFullscreen(timerPanelElement, 'Fullscreen mode is not available in this browser.')
@@ -316,4 +357,5 @@ updateClock()
 window.setInterval(updateClock, 1000)
 renderTimer()
 updateStatus('idle')
+updateTimerVisualState()
 syncFullscreenButton()
