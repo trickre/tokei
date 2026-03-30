@@ -15,6 +15,16 @@ app.innerHTML = `
       </div>
       <h1 class="clock" data-clock>--:--:--</h1>
       <p class="date" data-date>----</p>
+      <label class="clock-message-input">
+        <span>Fullscreen Message</span>
+        <input
+          type="text"
+          maxlength="80"
+          placeholder="Enter a message for fullscreen mode"
+          data-clock-message-input
+        />
+      </label>
+      <p class="clock-fullscreen-message" data-clock-fullscreen-message></p>
     </section>
 
     <section class="panel timer-panel">
@@ -57,6 +67,8 @@ app.innerHTML = `
 const clockElement = document.querySelector<HTMLElement>('[data-clock]')
 const dateElement = document.querySelector<HTMLElement>('[data-date]')
 const clockPanelElement = document.querySelector<HTMLElement>('[data-clock-panel]')
+const clockMessageInputElement = document.querySelector<HTMLInputElement>('[data-clock-message-input]')
+const clockFullscreenMessageElement = document.querySelector<HTMLElement>('[data-clock-fullscreen-message]')
 const timerPanelElement = document.querySelector<HTMLElement>('.timer-panel')
 const fullscreenToggleButton = document.querySelector<HTMLButtonElement>('[data-fullscreen-toggle]')
 const statusElement = document.querySelector<HTMLElement>('[data-status]')
@@ -70,6 +82,8 @@ if (
   !clockElement ||
   !dateElement ||
   !clockPanelElement ||
+  !clockMessageInputElement ||
+  !clockFullscreenMessageElement ||
   !timerPanelElement ||
   !fullscreenToggleButton ||
   !statusElement ||
@@ -119,6 +133,12 @@ const updateClock = () => {
   const now = new Date()
   clockElement.textContent = formatClock(now)
   dateElement.textContent = formatDate(now)
+}
+
+const updateClockFullscreenMessage = () => {
+  const message = clockMessageInputElement.value.trim()
+  clockFullscreenMessageElement.textContent = message
+  clockFullscreenMessageElement.classList.toggle('has-message', message.length > 0)
 }
 
 const updateStatus = (state: TimerState) => {
@@ -352,10 +372,12 @@ fullscreenToggleButton.addEventListener('click', async () => {
 })
 
 document.addEventListener('fullscreenchange', syncFullscreenButton)
+clockMessageInputElement.addEventListener('input', updateClockFullscreenMessage)
 
 updateClock()
 window.setInterval(updateClock, 1000)
 renderTimer()
 updateStatus('idle')
 updateTimerVisualState()
+updateClockFullscreenMessage()
 syncFullscreenButton()
