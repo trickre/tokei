@@ -115,6 +115,17 @@ if (
 
 type TimerState = 'idle' | 'running' | 'paused' | 'finished'
 
+type WakeLockSentinelLike = EventTarget & {
+  released: boolean
+  release: () => Promise<void>
+}
+
+type WakeLockNavigator = Navigator & {
+  wakeLock?: {
+    request: (type: 'screen') => Promise<WakeLockSentinelLike>
+  }
+}
+
 let timerState: TimerState = 'idle'
 let totalDurationMs = 5 * 60 * 1000
 let remainingMs = totalDurationMs
@@ -122,6 +133,7 @@ let intervalId: number | null = null
 let targetTimestamp = 0
 let audioContext: AudioContext | null = null
 let warningHoldTimeoutId: number | null = null
+let wakeLockSentinel: WakeLockSentinelLike | null = null
 
 const numberFormatter = new Intl.NumberFormat('ja-JP', {
   minimumIntegerDigits: 2,
@@ -217,6 +229,54 @@ const enterFullscreen = async (element: HTMLElement, unavailableMessage: string)
   }
 
   await element.requestFullscreen()
+}
+
+const supportsWakeLock = () => 'wakeLock' in navigator
+
+const releaseWakeLock = async () => {
+  if (!wakeLockSentinel) {
+    return
+  }
+
+  const activeWakeLock = wakeLockSentinel
+  wakeLockSentinel = null
+  await activeWakeLock.release()
+}
+
+const requestWakeLock = async () => {
+  if (!supportsWakeLock() || wakeLockSentinel || document.visibilityState !== 'visible') {
+    return
+  }
+
+  try {
+    const activeNavigator = navigator as WakeLockNavigator
+    const sentinel = await activeNavigator.wakeLock?.request('screen')
+
+    if (!sentinel) {
+      return
+    }
+
+    wakeLockSentinel = sentinel
+    sentinel.addEventListener('release', () => {
+      if (wakeLockSentinel === sentinel) {
+        wakeLockSentinel = null
+      }
+    })
+  } catch (error) {
+    console.error('Failed to acquire wake lock.', error)
+  }
+}
+
+const syncWakeLock = async () => {
+  const isFullscreen =
+    document.fullscreenElement === clockPanelElement || document.fullscreenElement === timerPanelElement
+
+  if (isFullscreen) {
+    await requestWakeLock()
+    return
+  }
+
+  await releaseWakeLock()
 }
 
 const ensureAudioContext = async () => {
@@ -394,7 +454,16 @@ fullscreenToggleButton.addEventListener('click', async () => {
   await enterFullscreen(clockPanelElement, 'Fullscreen mode is not available in this browser.')
 })
 
-document.addEventListener('fullscreenchange', syncFullscreenButton)
+document.addEventListener('fullscreenchange', () => {
+  syncFullscreenButton()
+  void syncWakeLock()
+})
+document.addEventListener('visibilitychange', () => {
+  void syncWakeLock()
+})
+window.addEventListener('beforeunload', () => {
+  void releaseWakeLock()
+})
 clockMessageInputElement.addEventListener('input', updateClockFullscreenMessage)
 sessionNameInputElement.addEventListener('input', updateTimerFullscreenSessionName)
 
@@ -406,3 +475,4 @@ updateTimerVisualState()
 updateClockFullscreenMessage()
 updateTimerFullscreenSessionName()
 syncFullscreenButton()
+void syncWakeLock()
